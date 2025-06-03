@@ -4,12 +4,12 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
 from .managers import CustomUserManager
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=50, primary_key=True, unique=True)
+    user_id = models.AutoField(primary_key=True, db_column='IdUser')
+    username = models.CharField(max_length=50, unique=True)
     firstname = models.CharField(max_length=100)
     lastname = models.CharField(max_length=100)
     email = models.EmailField(max_length=255, unique=True)
@@ -30,14 +30,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.username
 
-
 class Chat(models.Model):
     chat_id = models.AutoField(primary_key=True, db_column='IdChat')
     created_by = models.ForeignKey(
         CustomUser, 
         on_delete=models.CASCADE,
-        on_update=models.CASCADE, 
-        db_column='createdUsername'
+        # on_update=models.CASCADE, 
+        db_column='creatorUsername'
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -49,13 +48,13 @@ class Chat(models.Model):
 
 class Post(models.Model):
     post_id = models.AutoField(primary_key=True, db_column='IdPosts')
-    title = models.CharField(max_length=45, db_column='the')
+    title = models.CharField(max_length=45, db_column='title')
     content = models.CharField(max_length=500)
     image = models.CharField(max_length=255, blank=True, null=True, db_column='img')
     author = models.ForeignKey(
         CustomUser, 
         on_delete=models.CASCADE,
-        on_update=models.CASCADE, 
+        # on_update=models.CASCADE, 
         db_column='fromuser'
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -70,14 +69,15 @@ class Participant(models.Model):
     participant_id = models.AutoField(primary_key=True, db_column='IdParticipants')
     user = models.ForeignKey(
         CustomUser, 
-        on_delete=models.SET_NULL,
-        on_update=models.CASCADE,  
-        db_column='used'
+        on_delete=models.CASCADE,
+        # on_update=models.CASCADE,  
+        db_column='userId',
+        null=True
     )
     chat = models.ForeignKey(
         Chat, 
         on_delete=models.CASCADE,
-        on_update=models.CASCADE,  
+        # on_update=models.CASCADE,  
         db_column='fromchat'
     )
     joined_at = models.DateTimeField(auto_now_add=True)
@@ -87,20 +87,23 @@ class Participant(models.Model):
         unique_together = ('user', 'chat')
 
     def __str__(self):
-        return f"{self.user.username} in Chat {self.chat_id}"
+        if self.user != None:
+            return f"{self.user.username} in Chat {self.chat_id}"
+        else:
+            return f"null in Chat {self.chat_id}"
 
 class Comment(models.Model):
     comment_id = models.AutoField(primary_key=True, db_column='IdDocuments')
     post = models.ForeignKey(
         Post, 
         on_delete=models.CASCADE,
-        on_update=models.CASCADE,   
+        # on_update=models.CASCADE,   
         db_column='frompost'
     )
     author = models.ForeignKey(
         CustomUser, 
-         on_delete=models.CASCADE,
-        on_update=models.CASCADE,  
+        on_delete=models.CASCADE,
+        # on_update=models.CASCADE,  
         db_column='comment_by'
     )
     text = models.CharField(max_length=500)
@@ -117,13 +120,13 @@ class Like(models.Model):
     post = models.ForeignKey(
         Post, 
         on_delete=models.CASCADE, 
-        on_update=models.CASCADE,  
+        # on_update=models.CASCADE,  
         db_column='frompost'
     )
     user = models.ForeignKey(
         CustomUser, 
         on_delete=models.CASCADE, 
-        on_update=models.CASCADE,  
+        # on_update=models.CASCADE,  
         db_column='liked_by'
     )
     created_at = models.DateTimeField(auto_now_add=True, db_column='liked_at')
@@ -140,13 +143,14 @@ class Message(models.Model):
     content = models.CharField(max_length=500)
     sender = models.ForeignKey(
         CustomUser, 
-        on_update=models.CASCADE,
+        # on_update=models.CASCADE,
         on_delete=models.SET_NULL, 
-        db_column='fromuser'
+        db_column='fromuser',
+        null=True
     )
     chat = models.ForeignKey(
         Chat, 
-        on_update=models.CASCADE,
+        # on_update=models.CASCADE,
         on_delete=models.CASCADE,  
         db_column='fromchat'
     )
@@ -157,4 +161,7 @@ class Message(models.Model):
         ordering = ['sent_at']
 
     def __str__(self):
-        return f"Message in Chat {self.chat_id} by {self.sender.username}"
+        if self.sender != None:
+            return f"Message in Chat {self.chat_id} by {self.sender.username}"
+        else:
+            return f"Message in Chat {self.chat_id} by null"

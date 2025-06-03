@@ -11,7 +11,6 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
-
     class Meta:
         model = CustomUser
         fields = ("username",'firstname', 'lastname', 'email', 'phone', 'status', 'dob')

@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .models import CustomUser
-from .models import Chat, Post, Participant, Comment, Like, Message
+from .models import Chat, Post, Participant, Comment, Like, Message, Follows
 
 
 class CustomUserAdmin(UserAdmin):
@@ -53,3 +53,7 @@ class LikeAdmin(admin.ModelAdmin):
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('message_id', 'content', 'sender', 'chat', 'sent_at')
+
+@admin.register(Follows)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('follow_id', 'follower', 'following', 'followed_at')

@@ -165,3 +165,25 @@ class Message(models.Model):
             return f"Message in Chat {self.chat_id} by {self.sender.username}"
         else:
             return f"Message in Chat {self.chat_id} by null"
+
+class Follows(models.Model):
+    follow_id = models.AutoField(primary_key=True, db_column='IdFollow')
+    follower = models.ForeignKey(
+        CustomUser,
+        related_name='following_set',
+        on_delete=models.CASCADE
+    )
+    following = models.ForeignKey(
+        CustomUser,
+        related_name='followers_set',
+        on_delete=models.CASCADE
+    )
+    followed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')  # Prevent duplicate follows
+
+    def __str__(self):
+        return f"{self.follower} follows {self.following}"
+
+

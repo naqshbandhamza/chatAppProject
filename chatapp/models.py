@@ -50,7 +50,8 @@ class Post(models.Model):
     post_id = models.AutoField(primary_key=True, db_column='IdPosts')
     title = models.CharField(max_length=45, db_column='title')
     content = models.CharField(max_length=500)
-    image = models.CharField(max_length=255, blank=True, null=True, db_column='img')
+    # image = models.CharField(max_length=255, blank=True, null=True, db_column='img')
+    image = models.ImageField(upload_to='images/', blank=True, null=True, db_column='img')
     author = models.ForeignKey(
         CustomUser, 
         on_delete=models.CASCADE,

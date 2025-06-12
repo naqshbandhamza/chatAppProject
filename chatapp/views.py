@@ -37,6 +37,8 @@ class RegisterView(APIView):
         return Response({'token': token.key}, status=status.HTTP_201_CREATED)
 
 class LoginView(ObtainAuthToken):
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         token = Token.objects.get(key=response.data['token'])

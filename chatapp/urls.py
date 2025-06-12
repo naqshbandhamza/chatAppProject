@@ -7,7 +7,6 @@ from .views import LoginView,RegisterView
 
 app_name = 'chatapp'
 
-
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 

@@ -3,6 +3,7 @@ from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .views import UserViewSet
+from .views import LoginView,RegisterView
 
 app_name = 'chatapp'
 
@@ -13,4 +14,7 @@ router.register(r'users', UserViewSet)
 urlpatterns = [
     path('',views.home,name="home"),
     path('', include(router.urls)), 
+    path('login/', LoginView.as_view(), name='login'),
+    path('register/', RegisterView.as_view(), name='register'),
+
 ]

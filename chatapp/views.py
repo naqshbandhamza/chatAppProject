@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .serializers import UserSerializer
-from .models import CustomUser
+from .serializers import UserSerializer, ChatSerializer
+from .models import CustomUser,Chat
 from rest_framework import viewsets
 
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -78,3 +78,12 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return [IsAdminUserOnly()]
         return [IsAuthenticated()]
+
+class ChatViewSet(viewsets.ModelViewSet):
+    queryset = Chat.objects.all()
+    serializer_class = ChatSerializer
+
+    # def get_permissions(self):
+    #     if self.request.method == 'POST':
+    #         return [IsAdminUserOnly()]
+    #     return [IsAuthenticated()]

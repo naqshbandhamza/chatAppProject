@@ -13,7 +13,9 @@ from .permissions import IsAdminUserOnly
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
+from .validators import is_valid_username, is_valid_email
 
 # Create your views here.
 def home(request):
@@ -26,6 +28,25 @@ class RegisterView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email', '')
+
+        # ensure none are missing/empty
+        missing = [field for field in ('username', 'password', 'email')
+                   if not request.data.get(field)]
+        if missing:
+            return Response(
+                {'error': f"Missing field(s): {', '.join(missing)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate username
+        valid, error = is_valid_username(username)
+        if not valid:
+            return Response({'error': error}, status=400)
+
+        # Validate email
+        valid, error = is_valid_email(email)
+        if not valid:
+            return Response({'error': error}, status=400)
 
         if CustomUser.objects.filter(username=username).exists():
             return Response({'error': 'Username already exists'}, status=400)
@@ -51,4 +72,9 @@ class LoginView(ObtainAuthToken):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUserOnly]
+    # permission_classes = [IsAdminUserOnly]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUserOnly()]
+        return [IsAuthenticated()]

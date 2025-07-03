@@ -14,6 +14,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
+import json
 
 from .validators import is_valid_username, is_valid_email
 
@@ -61,13 +62,35 @@ class LoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        # Get the token and response from super
         response = super().post(request, *args, **kwargs)
         token = Token.objects.get(key=response.data['token'])
-        return Response({
+
+        # Create your own response object so you can attach cookie
+        res = Response({
             'token': token.key,
             'user_id': token.user_id,
             'username': token.user.username
         })
+
+        # Set HttpOnly secure cookie
+        res.set_cookie(
+            key='access_token',
+            value=token.key,
+            httponly=True,
+            secure=True,  # Set False for local dev (use env check)
+            samesite='Lax'
+        )
+
+        res.set_cookie(
+            key='user_data',
+            value=json.dumps({ 'username': token.user.username}),
+            httponly=True,
+            secure=True,  # Set False for local dev (use env check)
+            samesite='Lax'
+        )
+
+        return res  # ✅ return this, not the one from super()
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()

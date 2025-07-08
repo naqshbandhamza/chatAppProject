@@ -73,25 +73,7 @@ class LoginView(ObtainAuthToken):
             'username': token.user.username
         })
 
-        # Set HttpOnly secure cookie
-        res.set_cookie(
-            key='access_token',
-            value=token.key,
-            httponly=True,
-            secure=True,  # Set False for local dev (use env check)
-            samesite='Lax'
-        )
-
-        res.set_cookie(
-            key='user_data',
-            value=json.dumps({ 'username': token.user.username}),
-            httponly=True,
-            secure=True,  # Set False for local dev (use env check)
-            samesite='Lax'
-        )
-
-        return res  # ✅ return this, not the one from super()
-
+        return res  
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer

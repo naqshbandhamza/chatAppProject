@@ -35,7 +35,6 @@ class Chat(models.Model):
     created_by = models.ForeignKey(
         CustomUser, 
         on_delete=models.CASCADE,
-        # on_update=models.CASCADE, 
         db_column='creatorUsername'
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,15 +70,15 @@ class Participant(models.Model):
     user = models.ForeignKey(
         CustomUser, 
         on_delete=models.CASCADE,
-        # on_update=models.CASCADE,  
         db_column='userId',
         null=True
     )
     chat = models.ForeignKey(
         Chat, 
         on_delete=models.CASCADE,
-        # on_update=models.CASCADE,  
-        db_column='fromchat'
+        db_column='fromchat',
+        related_name='participants'  # <-- add this
+
     )
     joined_at = models.DateTimeField(auto_now_add=True)
 
@@ -153,7 +152,8 @@ class Message(models.Model):
         Chat, 
         # on_update=models.CASCADE,
         on_delete=models.CASCADE,  
-        db_column='fromchat'
+        db_column='fromchat',
+        related_name='messages'  # <-- add this
     )
     sent_at = models.DateTimeField(auto_now_add=True)
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .serializers import UserSerializer, ChatSerializer
-from .models import CustomUser,Chat
+from .serializers import UserSerializer, ChatListSerializer, ChatDetailSerializer
+from .models import CustomUser,Chat,Participant
 from rest_framework import viewsets
 
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -17,6 +17,9 @@ from rest_framework.permissions import IsAuthenticated
 import json
 
 from .validators import is_valid_username, is_valid_email
+
+from django.db.models import Q
+
 
 # Create your views here.
 def home(request):
@@ -84,11 +87,42 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAdminUserOnly()]
         return [IsAuthenticated()]
 
-class ChatViewSet(viewsets.ModelViewSet):
-    queryset = Chat.objects.all()
-    serializer_class = ChatSerializer
+# class ChatViewSet(viewsets.ModelViewSet):
+#     queryset = Chat.objects.all()
+#     serializer_class = ChatSerializer
+#     permission_classes = [IsAuthenticated]
 
-    # def get_permissions(self):
-    #     if self.request.method == 'POST':
-    #         return [IsAdminUserOnly()]
-    #     return [IsAuthenticated()]
+#     def get_queryset(self):
+#         user = self.request.user
+
+#         # Get all chat IDs where the user is a participant
+#         participant_chat_ids = Participant.objects.filter(user=user).values_list('chat_id', flat=True)
+
+#         # Return chats where user is either the creator or a participant
+#         return Chat.objects.filter(
+#             Q(created_by=user) | Q(chat_id__in=participant_chat_ids)
+#         ).distinct()
+
+
+   
+class ChatViewSet(viewsets.ModelViewSet):
+    queryset = Chat.objects.none()  # Required for router registration
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Get all chat IDs where the user is a participant
+        participant_chat_ids = Participant.objects.filter(user=user).values_list('chat_id', flat=True)
+
+        # Return chats where user is either the creator or a participant
+        return Chat.objects.filter(
+            Q(created_by=user) | Q(chat_id__in=participant_chat_ids)
+        ).distinct()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ChatListSerializer
+        elif self.action == 'retrieve':
+            return ChatDetailSerializer
+        return ChatDetailSerializer  # fallback

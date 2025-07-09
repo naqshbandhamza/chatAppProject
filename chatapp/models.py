@@ -35,7 +35,7 @@ class Chat(models.Model):
     created_by = models.ForeignKey(
         CustomUser, 
         on_delete=models.CASCADE,
-        db_column='creatorUsername'
+        db_column='creatorUsername',
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

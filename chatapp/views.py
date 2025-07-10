@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 import json
+from rest_framework.decorators import api_view, permission_classes
 
 from .validators import is_valid_username, is_valid_email
 
@@ -123,3 +124,42 @@ class MessageViewSet(viewsets.ModelViewSet):
         if chat_id:
             queryset = queryset.filter(chat_id=chat_id)
         return queryset
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_new_chat(request):
+    user = request.user
+    target_username = request.data.get('target_username')
+    message_content = request.data.get('message')
+
+    # Validate input
+    if not target_username or not message_content:
+        return Response(
+            {'error': 'target_username and message are required.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Get the target user
+    try:
+        target_user = CustomUser.objects.get(username=target_username)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Target user does not exist.'}, status=404)
+
+    # Create the chat
+    chat = Chat.objects.create(created_by=user)
+
+    # Add participants (both users)
+    Participant.objects.create(chat=chat, user=target_user)
+
+    # Create the initial message
+    Message.objects.create(
+        chat=chat,
+        sender=user,
+        content=message_content
+    )
+
+    serializer = ChatDetailSerializer(chat, context={'request': request})
+    return Response({
+        'chat': serializer.data,
+        'message': 'Chat created and message sent.'
+    }, status=201)

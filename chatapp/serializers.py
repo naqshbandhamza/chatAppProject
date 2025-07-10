@@ -3,38 +3,16 @@ from .models import CustomUser,Chat,Message,Participant
 from django.contrib.auth.hashers import make_password
 
 
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = CustomUser
-#         fields = '__all__'
-#         extra_kwargs = {
-#             'password': {'write_only': True}
-#         }
-
-#     def create(self, validated_data):
-#         validated_data['password'] = make_password(validated_data['password'])
-#         return super().create(validated_data)
-
-
-
-
 class MessageSerializer(serializers.ModelSerializer):
     sender_username = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ['message_id', 'content', 'sent_at', 'sender', 'sender_username']
+        fields = ['message_id', 'content', 'sent_at', 'sender','chat', 'sender_username']
 
     def get_sender_username(self, obj):
         return obj.sender.username if obj.sender else None
 
-# class ChatSerializer(serializers.ModelSerializer):
-#     messages = MessageSerializer(many=True, read_only=True)
-
-#     class Meta:
-#         model = Chat
-#         fields = ['chat_id', 'created_by', 'created_at', 'messages']
 
 class ParticipantSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()

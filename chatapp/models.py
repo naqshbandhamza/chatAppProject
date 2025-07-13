@@ -155,6 +155,7 @@ class Message(models.Model):
         db_column='fromchat',
         related_name='messages'  # <-- add this
     )
+    read_by = models.JSONField(default=list, blank=True)
     sent_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

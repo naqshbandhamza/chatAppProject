@@ -155,7 +155,8 @@ def create_new_chat(request):
     Message.objects.create(
         chat=chat,
         sender=user,
-        content=message_content
+        content=message_content,
+        read_by=[user.user_id]
     )
 
     serializer = ChatDetailSerializer(chat, context={'request': request})

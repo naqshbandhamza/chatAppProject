@@ -8,10 +8,19 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['message_id', 'content', 'sent_at', 'sender','chat', 'sender_username']
+        fields = ['message_id', 'content', 'sent_at', 'sender','chat', 'sender_username','read_by']
 
     def get_sender_username(self, obj):
         return obj.sender.username if obj.sender else None
+        
+    def create(self, validated_data):
+        sender = validated_data.get('sender')
+        print(sender)
+        if sender:
+            validated_data['read_by'] = [sender.user_id]
+        else:
+            validated_data['read_by'] = []
+        return super().create(validated_data)
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
@@ -48,6 +57,21 @@ class ChatDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = ['chat_id', 'created_by', 'created_at', 'messages','participants','creator_username']
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Get the request user from context
+        request = self.context.get('request', None)
+        user = request.user if request else None
+
+        if user and user.is_authenticated:
+            latest_message = instance.messages.last()
+            if latest_message and user.user_id not in latest_message.read_by:
+                latest_message.read_by.append(user.user_id)
+                latest_message.save(update_fields=['read_by'])
+
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):

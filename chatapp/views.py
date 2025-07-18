@@ -164,3 +164,7 @@ def create_new_chat(request):
         'chat': serializer.data,
         'message': 'Chat created and message sent.'
     }, status=201)
+
+
+def room(request, room_name):
+    return render(request, "chat/room.html", {"room_name": room_name})

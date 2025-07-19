@@ -21,6 +21,9 @@ from .validators import is_valid_username, is_valid_email
 
 from django.db.models import Q
 
+from chatapp.utils.notifications import send_new_chat_notification
+
+
 
 # Create your views here.
 def home(request):
@@ -160,6 +163,13 @@ def create_new_chat(request):
     )
 
     serializer = ChatDetailSerializer(chat, context={'request': request})
+
+    #  Send real-time notification to target user
+    send_new_chat_notification(to_username=target_username, chat_data={
+        'chat': serializer.data,
+        'message': 'Chat created and message sent.'
+    })
+
     return Response({
         'chat': serializer.data,
         'message': 'Chat created and message sent.'

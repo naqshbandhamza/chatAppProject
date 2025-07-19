@@ -65,3 +65,30 @@ class ChatConsumer(WebsocketConsumer):
     def chat_message(self, event):
         # Send message to WebSocket
         self.send(text_data=json.dumps(event["message"]))
+
+
+
+class NotificationConsumer(WebsocketConsumer):
+    def connect(self):
+        self.username = self.scope["url_route"]["kwargs"]["username"]
+        self.user_group_name = f"notifications_{self.username}"
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.user_group_name, self.channel_name
+        )
+        self.accept()
+
+    def disconnect(self, close_code):
+        async_to_sync(self.channel_layer.group_discard)(
+            self.user_group_name, self.channel_name
+        )
+
+    def receive(self, text_data):
+        # Not needed for this use case — this is a one-way notification
+        pass
+
+    def send_notification(self, event):
+        self.send(text_data=json.dumps({
+            "type": "notification",
+            "data": event["data"],
+        }))
